@@ -1,0 +1,19 @@
+[package]
+name = "super_tic_tac_toe"
+version = "0.1.0"
+edition = "2024"
+
+[workspace]
+members = ["crates/data_structures",
+    "crates/math_tools",
+    "crates/terminal_tools",
+    "crates/data_structures",
+]
+
+[dependencies]
+math_tools = { path = "crates/math_tools" }
+terminal_tools = { path = "crates/terminal_tools" }
+data_structures = { path = "crates/data_structures" }
+serde = { version = "1.0", features = ["derive"] }
+reqwest = { version = "0.13.5", features = ["json", "blocking"] }
+rand = "0.10.3"
