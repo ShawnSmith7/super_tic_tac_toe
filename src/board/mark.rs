@@ -1,6 +1,6 @@
 use super::Coords;
 use math_tools::bounded_value::Digit;
-use crate::{canvas, Degree};
+use crate::{canvas, Level};
 use canvas::{line, Canvas, Pos, Size};
 use line::*;
 use std::fmt::{self, Display, Formatter};
@@ -225,17 +225,17 @@ impl Mark {
 
     pub fn draw(&self, canvas: &mut Canvas, coords: &Coords) {
         let mut pos = canvas.get_pos(coords);
-        let degree = canvas.degree().get() - coords.0.len() as u8;
+        let level = canvas.level().get() - coords.0.len() as u8;
 
-        if degree == 0 {
+        if level == 0 {
             pos.col += 1;
 
             unsafe {
                 canvas.set_unchecked(pos, self.to_string().parse::<char>().unwrap());
             }
         } else {
-            let size = Size::from(Degree::new(degree));
-            let sub_size = Size::from(Degree::new(degree - 1));
+            let size = Size::from(Level::new(level));
+            let sub_size = Size::from(Level::new(level - 1));
             let dimensions = (pos, size.rows(), size.cols(), sub_size.rows(), sub_size.cols());
 
             unsafe {
@@ -277,12 +277,12 @@ mod tests {
 
     #[test]
     fn test() {
-        let mut canvas = Canvas::from(Degree::new(4));
+        let mut canvas = Canvas::from(Level::new(4));
         let mut coords = Coords::default();
 
         Grid.draw(&mut canvas, &coords);
 
-        while (*canvas.degree().get() as usize) > coords.0.len() {
+        while (*canvas.level().get() as usize) > coords.0.len() {
             let depth = coords.0.len();
 
             let variants = [

@@ -11,7 +11,7 @@ use math_tools::{bounded_value, define_bounds};
 use data_structures::arena_tree::{ArenaTree, ArenaTreeError, Node};
 use std::{fmt, ops};
 use fmt::{Display, Formatter};
-use super::{canvas, UserDegree};
+use super::{canvas, UserLevel};
 use canvas::Canvas;
 use mark::{CellMark, Mark};
 use cursor::BoardCursor;
@@ -32,22 +32,22 @@ pub use data_structures::arena_tree::NodeId as CellId;
 
 #[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
 pub struct Board {
-    degree: UserDegree,
+    level: UserLevel,
     inner: ArenaTree<Option<CellMark>, CELLS_PER_GRID>,
 }
 
-impl From<UserDegree> for Board {
-    fn from(degree: UserDegree) -> Self {
+impl From<UserLevel> for Board {
+    fn from(level: UserLevel) -> Self {
         Self {
-            degree,
+            level,
             inner: Default::default(),
         }
     }
 }
 
 impl Board {
-    pub fn degree(&self) -> UserDegree {
-        self.degree
+    pub fn level(&self) -> UserLevel {
+        self.level
     }
 
     pub fn get_checked(&self, id: CellId) -> Result<&Cell, BoardError> {
@@ -163,10 +163,10 @@ impl Board {
             Mark::from(mark).draw(canvas, coords);
         } else if let Some(overlay) = overlay && let Some(mark) = overlay.get(cursor.coords()) {
             mark.draw(canvas, coords);
-        } else if depth < *self.degree.get() as usize {
+        } else if depth < *self.level.get() as usize {
             Grid.draw(canvas, coords);
 
-            if depth < *canvas.degree().get() as usize + frame_depth {
+            if depth < *canvas.level().get() as usize + frame_depth {
                 for i in 0..9 {
                     unsafe {
                         cursor.move_to_child(CellBranch::new_unchecked(i));

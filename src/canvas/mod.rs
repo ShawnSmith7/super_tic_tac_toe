@@ -5,7 +5,7 @@ pub use size::Size;
 pub use canvas::Pos;
 
 use terminal_tools::canvas;
-use super::Degree;
+use super::Level;
 use crate::board::Coords;
 use std::fmt::{self, Display, Formatter};
 use canvas::Canvas as InternalCanvas;
@@ -16,22 +16,22 @@ pub const BASE_CELL_COLS_PLUS_ONE: usize = 4;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Canvas {
-    degree: Degree,
+    level: Level,
     data: InternalCanvas,
 }
 
-impl From<Degree> for Canvas {
-    fn from(degree: Degree) -> Self {
+impl From<Level> for Canvas {
+    fn from(level: Level) -> Self {
         Self {
-            degree,
-            data: InternalCanvas::from(Size::from(degree).0),
+            level,
+            data: InternalCanvas::from(Size::from(level).0),
         }
     }
 }
 
 impl Default for Canvas {
     fn default() -> Self {
-        Self::from(Degree::new(2))
+        Self::from(Level::new(2))
     }
 }
 
@@ -42,8 +42,8 @@ impl Display for Canvas {
 }
 
 impl Canvas {
-    pub fn degree(&self) -> Degree {
-        self.degree
+    pub fn level(&self) -> Level {
+        self.level
     }
 
     pub fn size(&self) -> Size {
@@ -55,7 +55,7 @@ impl Canvas {
 
         for (i, coord) in coords.0.iter().enumerate() {
             let (i, coord) = (i as u32, *coord.get());
-            let scalar = GRID_DIMENSIONS.pow(*self.degree.get() as u32 - 1 - i);
+            let scalar = GRID_DIMENSIONS.pow(*self.level.get() as u32 - 1 - i);
 
             pos.row += BASE_CELL_ROWS_PLUS_ONE * scalar * (coord / GRID_DIMENSIONS);
             pos.col += BASE_CELL_COLS_PLUS_ONE * scalar * (coord % GRID_DIMENSIONS);

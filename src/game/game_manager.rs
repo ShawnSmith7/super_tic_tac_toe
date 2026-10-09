@@ -1,6 +1,6 @@
 use std::{io, error};
 use terminal_tools::{clear_terminal, get_input};
-use crate::{UserDegree, game};
+use crate::{UserLevel, game};
 use game::{Game, GameState};
 use rand::RngExt;
 use reqwest::blocking::Client;
@@ -35,9 +35,9 @@ impl GameManager {
 
             match get_input("Enter a Command: ")?.trim().to_lowercase().as_str() {
                 "1" | "new game" => {
-                    match get_input("Enter a Degree: ")?.trim().parse::<UserDegree>() {
-                        Ok(degree) =>
-                            Self::run_game(&mut Game::from(degree), &mut message)?,
+                    match get_input("Enter a Level: ")?.trim().parse::<UserLevel>() {
+                        Ok(level) =>
+                            Self::run_game(&mut Game::from(level), &mut message)?,
                         Err(err) =>
                             message = Some(format!("Invalid command: \"{}\"", err.0)),
                     };

@@ -3,7 +3,7 @@ mod game_manager;
 
 pub use game_manager::GameManager;
 
-use super::{Degree, UserDegree, board, canvas};
+use super::{Level, UserLevel, board, canvas};
 use board::{Board, CellBranch, CellId, Coords, Overlay, cursor, mark};
 use canvas::Canvas;
 use command::*;
@@ -28,13 +28,13 @@ pub struct Game {
     board: Board,
 }
 
-impl From<UserDegree> for Game {
-    fn from(degree: UserDegree) -> Self {
+impl From<UserLevel> for Game {
+    fn from(level: UserLevel) -> Self {
         Self {
             state: InProgress,
             turn: X,
             coords: Default::default(),
-            board: Board::from(degree),
+            board: Board::from(level),
         }
     }
 }
@@ -159,7 +159,7 @@ impl<'a> RuntimeData<'a> {
             self.cursor.move_to_parent_unchecked();
 
             let mut branch = branch;
-            if self.cursor.depth() + 1 == *self.cursor.board().degree().get() as usize {
+            if self.cursor.depth() + 1 == *self.cursor.board().level().get() as usize {
                 self.cursor.add_cell_unchecked(Some(CellMark::from(*turn)), branch);
 
                 let mut prev_branch = branch;
@@ -244,7 +244,7 @@ impl<'a> RuntimeData<'a> {
                 self.frame_coords.0.pop();
             },
             Frame(ZoomFrameAction::In(branch)) => {
-                if self.frame_coords.0.len() + 1 >= *self.cursor.board().degree().get() as usize
+                if self.frame_coords.0.len() + 1 >= *self.cursor.board().level().get() as usize
                     || BoardCursor::from_coords(self.cursor.board(), &self.frame_coords)
                     .get_checked()
                     .is_ok_and(|cell| cell.val.is_some()) {
@@ -260,25 +260,25 @@ impl<'a> RuntimeData<'a> {
             Frame(ZoomFrameAction::Reset) =>
                 self.frame_coords = Coords::default(),
             Canvas(ZoomCanvasAction::In) =>
-                if let Some(degree) = self.canvas.degree()
+                if let Some(level) = self.canvas.level()
                     .get().checked_add(1)
-                    .map(|degree| unsafe { Degree::new_unchecked(degree) }) {
-                    self.canvas = Canvas::from(degree);
+                    .map(|level| unsafe { Level::new_unchecked(level) }) {
+                    self.canvas = Canvas::from(level);
                 } else {
                     self.message = Some(String::from("Cannot zoom canvas in any further"));
                 },
             Canvas(ZoomCanvasAction::Out) =>
-                if let Some(degree) = self.canvas.degree()
+                if let Some(level) = self.canvas.level()
                     .get().checked_sub(1)
-                    .map(|degree| unsafe { Degree::new_unchecked(degree) }) {
-                    self.canvas = Canvas::from(degree);
+                    .map(|level| unsafe { Level::new_unchecked(level) }) {
+                    self.canvas = Canvas::from(level);
                 } else {
                     self.message = Some(String::from("Cannot zoom canvas out any further"));
                 },
             Canvas(ZoomCanvasAction::Reset) =>
-                self.canvas = Canvas::from(unsafe { Degree::new_unchecked(2) }),
-            Canvas(ZoomCanvasAction::Set(degree)) =>
-                self.canvas = Canvas::from(degree),
+                self.canvas = Canvas::from(unsafe { Level::new_unchecked(2) }),
+            Canvas(ZoomCanvasAction::Set(level)) =>
+                self.canvas = Canvas::from(level),
         }
     }
 }

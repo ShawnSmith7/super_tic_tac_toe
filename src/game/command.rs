@@ -1,4 +1,4 @@
-use crate::{board, Degree};
+use crate::{board, Level};
 use board::{CellBranch, UserCellBranch};
 use std::str::FromStr;
 use terminal_tools::ParseError;
@@ -114,7 +114,7 @@ pub enum ZoomCanvasAction {
     In,
     Out,
     Reset,
-    Set(Degree),
+    Set(Level),
 }
 
 impl_from_str!(ZoomCanvasAction);
@@ -130,8 +130,8 @@ impl ZoomCanvasAction {
             "in" => Ok(ZoomCanvasAction::In),
             "out" => Ok(ZoomCanvasAction::Out),
             "reset" => Ok(ZoomCanvasAction::Reset),
-            degree => Ok(ZoomCanvasAction::Set(
-                degree.parse().map_err(|_| err())?
+            level => Ok(ZoomCanvasAction::Set(
+                level.parse().map_err(|_| err())?
             )),
         }
     }
