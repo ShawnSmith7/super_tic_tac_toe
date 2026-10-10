@@ -31,6 +31,7 @@ pub enum Command {
     Zoom(ZoomTarget),
     Quit,
     Forfeit,
+    Help,
 }
 
 impl FromStr for Command {
@@ -45,6 +46,7 @@ impl FromStr for Command {
             "zoom" => Zoom(ZoomTarget::parse_from_tokens(&mut tokens, s)?),
             "quit" => Quit,
             "forfeit" => Forfeit,
+            "help" => Help,
             branch => Move(CellBranch::try_from(
                 &branch.parse::<UserCellBranch>().map_err(|_| err())?
             ).unwrap()),

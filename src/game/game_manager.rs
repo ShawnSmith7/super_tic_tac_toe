@@ -5,6 +5,7 @@ use game::{Game, GameState};
 use rand::RngExt;
 use reqwest::blocking::Client;
 use error::Error;
+use super::help_screen;
 
 use GameState::*;
 
@@ -20,13 +21,14 @@ impl GameManager {
         loop {
             clear_terminal();
             println!("\
-                *****************\n\
+                =================\n\
                 Super Tic Tac Toe\n\
-                *****************\n\
+                =================\n\
                 \n\
                 1. New Game\n\
                 2. Load Game\n\
-                3. Quit\n"
+                3. Help\n\
+                4. Quit\n"
             );
 
             if let Some(message) = &message {
@@ -55,7 +57,8 @@ impl GameManager {
                             message = Some(format!("Error loading game: {}", err)),
                     }
                 },
-                "3" | "quit" => break,
+                "3" | "help" => help_screen()?,
+                "4" | "quit" => break,
                 invalid_command => {
                     message = Some(format!("Invalid command: \"{invalid_command}\""));
                 },
