@@ -22,4 +22,4 @@ A high-performance terminal strategy game written in Rust, featuring nested sub-
 Requires the [Rust toolchain](https://rustup.rs/) installed.
 
 ```bash
-cargo install --git [https://github.com/YOUR-USERNAME/YOUR-REPO-NAME](https://github.com/YOUR-USERNAME/YOUR-REPO-NAME)
+cargo install --git https://github.com/ShawnSmith7/super_tic_tac_toe.git
