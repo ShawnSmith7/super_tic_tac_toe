@@ -5,6 +5,9 @@ on:
     tags:
       - 'v*'
 
+permissions:
+  contents: write
+
 jobs:
   build-macos:
     name: Build macOS Binary
@@ -12,6 +15,7 @@ jobs:
     env:
       ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
       ACTIONS_RUNNER_FORCE_NODE24: false
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -28,7 +32,14 @@ jobs:
         run: mv target/aarch64-apple-darwin/release/super_tic_tac_toe app-macos-arm64
         shell: bash
 
-      - name: Upload Binary via GitHub CLI
-        run: gh release upload ${{ github.ref_name }} app-macos-arm64 --clobber
+      - name: Create GitHub Release if it does not exist
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release view "${{ github.ref_name }}" >/dev/null 2>&1 || \
+          gh release create "${{ github.ref_name }}" --generate-notes --verify-tag
+
+      - name: Upload Binary via GitHub CLI
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload "${{ github.ref_name }}" app-macos-arm64 --clobber
