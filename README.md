@@ -1,4 +1,4 @@
-# Multi-Level Terminal Strategy Game
+# Super Tic Tac Toe
 
 ![Rust](https://img.shields.io/badge/rust-2021-orange.svg)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
