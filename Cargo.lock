@@ -153,6 +153,7 @@ dependencies = [
 [[package]]
 name = "data_structures"
 version = "0.1.0"
+source = "git+ssh://git@github.com/ShawnSmith7/data_structures.git#be8c18a34f0f19515bf7a99db02cf18ee3de59c7"
 dependencies = [
  "serde",
 ]
@@ -646,6 +647,7 @@ checksum = "4050469837a6ff301cd14c1f8f24f88549e6d548f24f64e2148eb0f72cebc51f"
 [[package]]
 name = "math_tools"
 version = "0.1.0"
+source = "git+ssh://git@github.com/ShawnSmith7/math_tools.git#82f15ac2bb02726c7e74e57ef207d713a331401a"
 dependencies = [
  "serde",
  "terminal_tools",
@@ -1208,6 +1210,7 @@ dependencies = [
 [[package]]
 name = "terminal_tools"
 version = "0.1.0"
+source = "git+ssh://git@github.com/ShawnSmith7/terminal_tools.git#0ba073df664a48191652b5ac76f16a0be322a392"
 
 [[package]]
 name = "thiserror"
