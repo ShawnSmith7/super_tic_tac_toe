@@ -101,9 +101,9 @@ dependencies = [
 
 [[package]]
 name = "combine"
-version = "4.6.8"
+version = "4.6.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cfc320937d09e6de266b31b9afb480f197d7a861be86be7cb2ea7e5d1bfffc5e"
+checksum = "4356eba6976435498d05a311ee9fc486da3bc81c200d3f0d7dd9703b41913f92"
 dependencies = [
  "bytes",
  "memchr",
@@ -153,7 +153,7 @@ dependencies = [
 [[package]]
 name = "data_structures"
 version = "0.1.0"
-source = "git+https://github.com/ShawnSmith7/data_structures.git#be8c18a34f0f19515bf7a99db02cf18ee3de59c7"
+source = "git+https://github.com/ShawnSmith7/data_structures.git#874521c4aa9451a409858c18e88269c3e70ff518"
 dependencies = [
  "serde",
 ]
@@ -647,10 +647,10 @@ checksum = "4050469837a6ff301cd14c1f8f24f88549e6d548f24f64e2148eb0f72cebc51f"
 [[package]]
 name = "math_tools"
 version = "0.1.0"
-source = "git+https://github.com/ShawnSmith7/math_tools.git#82f15ac2bb02726c7e74e57ef207d713a331401a"
+source = "git+https://github.com/ShawnSmith7/math_tools.git#40677fe1dc6c7bf8059c20b9579b0e6d79740ab6"
 dependencies = [
  "serde",
- "terminal_tools 0.1.0 (git+ssh://git@github.com/ShawnSmith7/terminal_tools.git)",
+ "terminal_tools",
 ]
 
 [[package]]
@@ -1141,7 +1141,7 @@ dependencies = [
  "rand",
  "reqwest",
  "serde",
- "terminal_tools 0.1.0 (git+https://github.com/ShawnSmith7/terminal_tools.git)",
+ "terminal_tools",
 ]
 
 [[package]]
@@ -1206,11 +1206,6 @@ dependencies = [
  "core-foundation-sys",
  "libc",
 ]
-
-[[package]]
-name = "terminal_tools"
-version = "0.1.0"
-source = "git+ssh://git@github.com/ShawnSmith7/terminal_tools.git#0c13a6b34c9af7a3854eb0f23526a4d497a1ccfa"
 
 [[package]]
 name = "terminal_tools"

@@ -207,7 +207,7 @@ impl<'a> RuntimeData<'a> {
 
         for i in 0..9 {
             unsafe {
-                cursor.move_to_child(CellBranch::new_unchecked(i));
+                cursor.move_to_child(CellBranch::new(i));
                 marks[i] = cursor.get_checked().map(|cell| cell.val).unwrap_or(None);
                 cursor.move_to_parent_unchecked();
             }
@@ -263,7 +263,7 @@ impl<'a> RuntimeData<'a> {
             Canvas(ZoomCanvasAction::In) =>
                 if let Some(level) = self.canvas.level()
                     .get().checked_add(1)
-                    .map(|level| unsafe { Level::new_unchecked(level) }) {
+                    .map(Level::new) {
                     self.canvas = Canvas::from(level);
                 } else {
                     self.message = Some(String::from("Cannot zoom canvas in any further"));
@@ -271,13 +271,13 @@ impl<'a> RuntimeData<'a> {
             Canvas(ZoomCanvasAction::Out) =>
                 if let Some(level) = self.canvas.level()
                     .get().checked_sub(1)
-                    .map(|level| unsafe { Level::new_unchecked(level) }) {
+                    .map(Level::new) {
                     self.canvas = Canvas::from(level);
                 } else {
                     self.message = Some(String::from("Cannot zoom canvas out any further"));
                 },
             Canvas(ZoomCanvasAction::Reset) =>
-                self.canvas = Canvas::from(unsafe { Level::new_unchecked(2) }),
+                self.canvas = Canvas::from(Level::new(2)),
             Canvas(ZoomCanvasAction::Set(level)) =>
                 self.canvas = Canvas::from(level),
         }

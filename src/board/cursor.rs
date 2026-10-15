@@ -79,9 +79,7 @@ macro_rules! define_cursor {
             }
 
             pub unsafe fn get_unchecked(&self) -> &Cell {
-                unsafe {
-                    self.inner.get_unchecked(&self.board.inner)
-                }
+                self.inner.get(&self.board.inner)
             }
 
             pub fn move_to_child(&mut self, branch: CellBranch) {
@@ -90,7 +88,7 @@ macro_rules! define_cursor {
 
                 unsafe {
                     if let Ok(cell) = self.get_checked() && cell.branches.get_unchecked(branch).is_some() {
-                        self.inner.move_to_child_unchecked(branch, &self.board.inner);
+                        self.inner.move_to_child(branch, &self.board.inner);
                     } else {
                         self.ghost_depth += 1;
                     }
@@ -117,9 +115,7 @@ macro_rules! define_cursor {
                     self.ghost_depth -= 1;
                     self.inner.id()
                 } else {
-                    unsafe {
-                        self.inner.move_to_parent_unchecked(&self.board.inner)
-                    }
+                    self.inner.move_to_parent(&self.board.inner)
                 }
             }
         }

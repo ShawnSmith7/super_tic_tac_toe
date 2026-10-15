@@ -23,12 +23,10 @@ impl<'a> From<&'a Coords> for Overlay<'a> {
         };
 
         for i in 0..9 {
-            unsafe {
-                overlay.cells.push(Cell {
-                    mark: Num(Digit::new_unchecked(i + 1)),
-                    coords: Coords::new(vec![i as usize]),
-                });
-            }
+            overlay.cells.push(Cell {
+                mark: Num(Digit::new(i + 1)),
+                coords: Coords::new(vec![i as usize]),
+            });
         }
 
         overlay

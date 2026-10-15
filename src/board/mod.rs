@@ -59,7 +59,7 @@ impl Board {
     }
 
     pub unsafe fn get_unchecked(&self, id: CellId) -> &Cell {
-        unsafe { self.inner.get_unchecked(id) }
+        self.inner.get(id)
     }
 
     pub fn set_checked(&mut self, mark: CellMark, id: CellId) -> Result<(), BoardError> {
@@ -69,13 +69,11 @@ impl Board {
             return Err(MarkOverwrite { mark: cell.val, other: mark, id });
         }
 
-        unsafe {
-            for branch in cell.branches.iter().flatten().copied().collect::<Vec<_>>() {
-                self.inner.delete_branch_unchecked(id, branch);
-            }
-
-            self.inner.set_unchecked(id, Some(mark));
+        for branch in cell.branches.iter().flatten().copied().collect::<Vec<_>>() {
+            self.inner.delete_branch(id, branch);
         }
+
+        self.inner.set(id, Some(mark));
         Ok(())
     }
 
@@ -84,18 +82,16 @@ impl Board {
     }
 
     pub unsafe fn set_unchecked(&mut self, mark: CellMark, id: CellId) {
-        unsafe {
-            for branch in self.inner
-                .get_unchecked(id)
-                .branches.iter()
-                .enumerate()
-                .filter_map(|(branch, branch_id)| branch_id.is_some().then_some(branch))
-                .collect::<Vec<usize>>() {
-                self.inner.delete_branch_unchecked(id, branch);
-            }
-
-            self.inner.set_unchecked(id, Some(mark));
+        for branch in self.inner
+            .get(id)
+            .branches.iter()
+            .enumerate()
+            .filter_map(|(branch, branch_id)| branch_id.is_some().then_some(branch))
+            .collect::<Vec<usize>>() {
+            self.inner.delete_branch(id, branch);
         }
+
+        self.inner.set(id, Some(mark));
     }
 
     pub fn add_cell_checked(&mut self, val: Option<CellMark>, parent_id: CellId, cell_branch: CellBranch) -> Result<usize, BoardError> {
@@ -111,7 +107,7 @@ impl Board {
                 return Err(Inner(BranchOverwrite { id: parent_id, branch }));
             }
             
-            Ok(self.inner.add_node_unchecked(val, parent_id, branch))
+            Ok(self.inner.add_node(val, parent_id, branch))
         }
     }
     
@@ -120,9 +116,7 @@ impl Board {
     }
     
     pub unsafe fn add_cell_unchecked(&mut self, val: Option<CellMark>, parent_id: CellId, cell_branch: CellBranch) -> usize {
-        unsafe {
-            self.inner.add_node_unchecked(val, parent_id, *cell_branch.get())
-        }
+        self.inner.add_node(val, parent_id, *cell_branch.get())
     }
     
     pub fn delete_branch_checked(&mut self, id: CellId, cell_branch: CellBranch) -> Result<(), BoardError> {
@@ -132,7 +126,7 @@ impl Board {
             match *self.inner.get_checked(id).map_err(|err| Inner(err))?.branches.get_unchecked(branch) {
                 None => Err(Inner(BranchDoesNotExist { branch, id })),
                 Some(_) => {
-                    self.inner.delete_branch_unchecked(id, branch);
+                    self.inner.delete_branch(id, branch);
                     Ok(())
                 },
             }
@@ -144,9 +138,7 @@ impl Board {
     }
     
     pub unsafe fn delete_branch_unchecked(&mut self, id: CellId, cell_branch: CellBranch) {
-        unsafe {
-            self.inner.delete_branch_unchecked(id, *cell_branch.get())
-        }
+        self.inner.delete_branch(id, *cell_branch.get())
     }
 
     pub fn draw(&self, canvas: &mut Canvas, overlay: Option<&Overlay>, frame_coords: &Coords) {
@@ -169,7 +161,7 @@ impl Board {
             if depth < *canvas.level().get() as usize + frame_depth {
                 for i in 0..9 {
                     unsafe {
-                        cursor.move_to_child(CellBranch::new_unchecked(i));
+                        cursor.move_to_child(CellBranch::new(i));
                         self.draw_recursive(cursor, overlay, frame_coords, canvas);
                         cursor.move_to_parent_unchecked();
                     }
