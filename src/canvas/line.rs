@@ -1,4 +1,4 @@
-use terminal_tools::canvas::{line, DrawUnchecked};
+use terminal_tools::canvas::{line, Draw};
 use line::Line as InternalLine;
 use super::{Pos, Canvas};
 
@@ -29,8 +29,6 @@ impl Line {
     }
 
     pub unsafe fn draw_unchecked(&self, canvas: &mut Canvas) {
-        unsafe {
-            self.0.draw_unchecked(&mut canvas.data)
-        }
+        self.0.draw(&mut canvas.data)
     }
 }

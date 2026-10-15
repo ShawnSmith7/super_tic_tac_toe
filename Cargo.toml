@@ -1,12 +1,12 @@
 [package]
 name = "super_tic_tac_toe"
-version = "0.1.0"
+version = "1.0.0"
 edition = "2024"
 
 [dependencies]
-terminal_tools = { git = "ssh://git@github.com/ShawnSmith7/terminal_tools.git" }
-math_tools = { git = "ssh://git@github.com/ShawnSmith7/math_tools.git" }
-data_structures = { git = "ssh://git@github.com/ShawnSmith7/data_structures.git" }
+terminal_tools = { git = "https://github.com/ShawnSmith7/terminal_tools.git" }
+math_tools = { git = "https://github.com/ShawnSmith7/math_tools.git" }
+data_structures = { git = "https://github.com/ShawnSmith7/data_structures.git" }
 serde = { version = "1.0", features = ["derive"] }
 reqwest = { version = "0.13.5", features = ["json", "blocking"] }
 rand = "0.10.3"
