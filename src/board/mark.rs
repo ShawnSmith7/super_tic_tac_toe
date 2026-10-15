@@ -144,45 +144,32 @@ type Dimensions = (Pos, usize, usize, usize, usize);
 impl Mark {
     unsafe fn draw_grid(&self, canvas: &mut Canvas, (pos, rows, cols, sub_rows, sub_cols): Dimensions) {
         let mut horiz = Line::new(pos + Pos::new(sub_rows, 0), cols, '-', Horiz);
-        unsafe {
-            horiz.draw_unchecked(canvas);
-        }
+        horiz.draw(canvas);
 
         horiz.pos().row += sub_rows + 1;
-        unsafe {
-            horiz.draw_unchecked(canvas);
-        }
+        horiz.draw(canvas);
 
         let mut vert = Line::new(pos + Pos::new(0, sub_cols), rows, '|', Vert);
-        unsafe {
-            vert.draw_unchecked(canvas);
-        }
+        vert.draw(canvas);
 
         vert.pos().col += sub_cols + 1;
-        unsafe {
-            vert.draw_unchecked(canvas);
-        }
+        vert.draw(canvas);
     }
 
     unsafe fn draw_x(&self, canvas: &mut Canvas, (pos, rows, cols, sub_rows, sub_cols): Dimensions) {
         let mut diag = Line::new(pos + Pos::new(sub_rows, sub_cols), sub_rows + 2, '\\', DiagDown);
-        unsafe {
-            diag.draw_unchecked(canvas);
-        }
+        diag.draw(canvas);
 
         *diag.ch() = '/';
         *diag.variant() = DiagUp;
-        unsafe {
-            diag.draw_unchecked(canvas);
-            canvas.set_unchecked(pos + Pos::new(rows / 2, cols / 2), 'X');
-        }
+
+        diag.draw(canvas);
+        canvas.set(pos + Pos::new(rows / 2, cols / 2), 'X');
     }
 
     unsafe fn draw_t(&self, canvas: &mut Canvas, (pos, _, cols, sub_rows, sub_cols): Dimensions) {
-        unsafe {
-            Line::new(pos + Pos::new(sub_rows - 1, sub_cols), sub_cols + 2, '_', Horiz).draw_unchecked(canvas);
-            Line::new(pos + Pos::new(sub_rows, cols / 2), sub_rows + 2, '|', Vert).draw_unchecked(canvas);
-        }
+        Line::new(pos + Pos::new(sub_rows - 1, sub_cols), sub_cols + 2, '_', Horiz).draw(canvas);
+        Line::new(pos + Pos::new(sub_rows, cols / 2), sub_rows + 2, '|', Vert).draw(canvas);
     }
 
     unsafe fn draw_num(&self, canvas: &mut Canvas, (pos, rows, _, sub_rows, sub_cols): Dimensions, num: Digit) {
@@ -193,33 +180,31 @@ impl Mark {
         let mut horiz = Line::new(pos + Pos::new(sub_rows - 1, sub_cols + 1), sub_cols, '-', Horiz);
         let mut vert = Line::new(pos + Pos::new(sub_rows, sub_cols), mid - sub_rows, '|', Vert);
 
-        unsafe {
-            if [0, 2, 3, 5, 6, 7, 8, 9].contains(num) {
-                horiz.draw_unchecked(canvas);
-            }
-            if [0, 4, 5, 6, 8, 9].contains(num) {
-                vert.draw_unchecked(canvas);
-            }
-            if [0, 1, 2, 3, 4, 7, 8, 9].contains(num) {
-                vert.pos().col = pos.col + vert_right_col;
-                vert.draw_unchecked(canvas);
-            }
-            if [2, 3, 4, 5, 6, 8, 9].contains(num) {
-                horiz.pos().row = pos.row + mid;
-                horiz.draw_unchecked(canvas);
-            }
-            if [0, 2, 6, 8].contains(num) {
-                *vert.pos() = pos + Pos::new(vert_bottom_row, sub_cols);
-                vert.draw_unchecked(canvas);
-            }
-            if [0, 1, 3, 4, 5, 6, 7, 8, 9].contains(num) {
-                *vert.pos() = pos + Pos::new(vert_bottom_row, vert_right_col);
-                vert.draw_unchecked(canvas);
-            }
-            if [0, 2, 3, 5, 6, 8, 9].contains(num) {
-                horiz.pos().row = pos.row + 2 * (sub_rows + 1);
-                horiz.draw_unchecked(canvas);
-            }
+        if [0, 2, 3, 5, 6, 7, 8, 9].contains(num) {
+            horiz.draw(canvas);
+        }
+        if [0, 4, 5, 6, 8, 9].contains(num) {
+            vert.draw(canvas);
+        }
+        if [0, 1, 2, 3, 4, 7, 8, 9].contains(num) {
+            vert.pos().col = pos.col + vert_right_col;
+            vert.draw(canvas);
+        }
+        if [2, 3, 4, 5, 6, 8, 9].contains(num) {
+            horiz.pos().row = pos.row + mid;
+            horiz.draw(canvas);
+        }
+        if [0, 2, 6, 8].contains(num) {
+            *vert.pos() = pos + Pos::new(vert_bottom_row, sub_cols);
+            vert.draw(canvas);
+        }
+        if [0, 1, 3, 4, 5, 6, 7, 8, 9].contains(num) {
+            *vert.pos() = pos + Pos::new(vert_bottom_row, vert_right_col);
+            vert.draw(canvas);
+        }
+        if [0, 2, 3, 5, 6, 8, 9].contains(num) {
+            horiz.pos().row = pos.row + 2 * (sub_rows + 1);
+            horiz.draw(canvas);
         }
     }
 
@@ -230,9 +215,7 @@ impl Mark {
         if level == 0 {
             pos.col += 1;
 
-            unsafe {
-                canvas.set_unchecked(pos, self.to_string().parse::<char>().unwrap());
-            }
+            canvas.set(pos, self.to_string().parse::<char>().unwrap());
         } else {
             let size = Size::from(Level::new(level));
             let sub_size = Size::from(Level::new(level - 1));

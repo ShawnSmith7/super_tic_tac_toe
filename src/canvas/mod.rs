@@ -64,7 +64,7 @@ impl Canvas {
         pos
     }
     
-    pub unsafe fn set_unchecked(&mut self, pos: Pos, ch: char) {
+    pub fn set(&mut self, pos: Pos, ch: char) {
         self.data.set(pos, ch)
     }
 

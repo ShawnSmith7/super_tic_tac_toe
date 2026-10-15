@@ -28,7 +28,7 @@ impl Line {
         &mut self.0.variant
     }
 
-    pub unsafe fn draw_unchecked(&self, canvas: &mut Canvas) {
+    pub fn draw(&self, canvas: &mut Canvas) {
         self.0.draw(&mut canvas.data)
     }
 }
