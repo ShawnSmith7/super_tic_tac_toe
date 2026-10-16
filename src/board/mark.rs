@@ -142,7 +142,7 @@ impl From<CellMark> for Mark {
 type Dimensions = (Pos, usize, usize, usize, usize);
 
 impl Mark {
-    unsafe fn draw_grid(&self, canvas: &mut Canvas, (pos, rows, cols, sub_rows, sub_cols): Dimensions) {
+    fn draw_grid(&self, canvas: &mut Canvas, (pos, rows, cols, sub_rows, sub_cols): Dimensions) {
         let mut horiz = Line::new(pos + Pos::new(sub_rows, 0), cols, '-', Horiz);
         horiz.draw(canvas);
 
@@ -156,7 +156,7 @@ impl Mark {
         vert.draw(canvas);
     }
 
-    unsafe fn draw_x(&self, canvas: &mut Canvas, (pos, rows, cols, sub_rows, sub_cols): Dimensions) {
+    fn draw_x(&self, canvas: &mut Canvas, (pos, rows, cols, sub_rows, sub_cols): Dimensions) {
         let mut diag = Line::new(pos + Pos::new(sub_rows, sub_cols), sub_rows + 2, '\\', DiagDown);
         diag.draw(canvas);
 
@@ -167,12 +167,12 @@ impl Mark {
         canvas.set(pos + Pos::new(rows / 2, cols / 2), 'X');
     }
 
-    unsafe fn draw_t(&self, canvas: &mut Canvas, (pos, _, cols, sub_rows, sub_cols): Dimensions) {
+    fn draw_t(&self, canvas: &mut Canvas, (pos, _, cols, sub_rows, sub_cols): Dimensions) {
         Line::new(pos + Pos::new(sub_rows - 1, sub_cols), sub_cols + 2, '_', Horiz).draw(canvas);
         Line::new(pos + Pos::new(sub_rows, cols / 2), sub_rows + 2, '|', Vert).draw(canvas);
     }
 
-    unsafe fn draw_num(&self, canvas: &mut Canvas, (pos, rows, _, sub_rows, sub_cols): Dimensions, num: Digit) {
+    fn draw_num(&self, canvas: &mut Canvas, (pos, rows, _, sub_rows, sub_cols): Dimensions, num: Digit) {
         let num = num.get();
         let mid = rows / 2;
         let vert_right_col = 2 * sub_cols + 1;
@@ -221,17 +221,15 @@ impl Mark {
             let sub_size = Size::from(Level::new(level - 1));
             let dimensions = (pos, size.rows(), size.cols(), sub_size.rows(), sub_size.cols());
 
-            unsafe {
-                match self {
-                    Grid => self.draw_grid(canvas, dimensions),
-                    Num(num) => self.draw_num(canvas, dimensions, *num),
-                    Cell(cell_mark) => match cell_mark {
-                        Player(player_mark) => match player_mark {
-                            X => self.draw_x(canvas, dimensions),
-                            O => self.draw_num(canvas, dimensions, Digit::new(0)),
-                        },
-                        T => self.draw_t(canvas, dimensions),
-                    }
+            match self {
+                Grid => self.draw_grid(canvas, dimensions),
+                Num(num) => self.draw_num(canvas, dimensions, *num),
+                Cell(cell_mark) => match cell_mark {
+                    Player(player_mark) => match player_mark {
+                        X => self.draw_x(canvas, dimensions),
+                        O => self.draw_num(canvas, dimensions, Digit::new(0)),
+                    },
+                    T => self.draw_t(canvas, dimensions),
                 }
             }
         }

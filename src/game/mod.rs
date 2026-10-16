@@ -150,55 +150,53 @@ impl<'a> RuntimeData<'a> {
     }
 
     fn make_move(&mut self, branch: CellBranch, turn: &mut PlayerMark, state: &mut GameState) -> Break {
-        unsafe {
-            self.cursor.move_to_child(branch);
-            if self.cursor.get_checked().map(|cell| cell.val.is_some()).unwrap_or(false) {
-                self.cursor.move_to_parent_unchecked();
-                self.message = Some(String::from("You cannot move where a mark already exists"));
-                return Break(true);
-            }
-            self.cursor.move_to_parent_unchecked();
-
-            let mut branch = branch;
-            if self.cursor.depth() + 1 == *self.cursor.board().level().get() as usize {
-                self.cursor.add_cell_unchecked(Some(CellMark::from(*turn)), branch);
-
-                let mut prev_branch = branch;
-                while let Some(mark) = self.check_win() {
-                    prev_branch = branch;
-                    branch = match self.cursor.coords().0.last() {
-                        Some(branch) => *branch,
-                        None => {
-                            *state = if mark == T {
-                                Tie
-                            } else {
-                                Won
-                            };
-
-                            self.has_overlay = false;
-                            return Break(false);
-                        },
-                    };
-                    self.cursor.set(mark);
-                    self.cursor.move_to_parent_unchecked();
-                }
-
-                if self.cursor.id() == Root {
-                    branch = prev_branch;
-                } else {
-                    self.cursor.move_to_parent_unchecked();
-                }
-
-                *turn = turn.not();
-            }
-
-            self.cursor.move_to_child(branch);
-            if self.cursor.get_checked().map(|cell| cell.val.is_some()).unwrap_or(false) {
-                self.cursor.move_to_parent_unchecked();
-            }
-
-            Break(false)
+        self.cursor.move_to_child(branch);
+        if self.cursor.get_checked().map(|cell| cell.val.is_some()).unwrap_or(false) {
+            self.cursor.move_to_parent();
+            self.message = Some(String::from("You cannot move where a mark already exists"));
+            return Break(true);
         }
+        self.cursor.move_to_parent();
+
+        let mut branch = branch;
+        if self.cursor.depth() + 1 == *self.cursor.board().level().get() as usize {
+            self.cursor.add_cell(Some(CellMark::from(*turn)), branch);
+
+            let mut prev_branch = branch;
+            while let Some(mark) = self.check_win() {
+                prev_branch = branch;
+                branch = match self.cursor.coords().0.last() {
+                    Some(branch) => *branch,
+                    None => {
+                        *state = if mark == T {
+                            Tie
+                        } else {
+                            Won
+                        };
+
+                        self.has_overlay = false;
+                        return Break(false);
+                    },
+                };
+                self.cursor.set(mark);
+                self.cursor.move_to_parent();
+            }
+
+            if self.cursor.id() == Root {
+                branch = prev_branch;
+            } else {
+                self.cursor.move_to_parent();
+            }
+
+            *turn = turn.not();
+        }
+
+        self.cursor.move_to_child(branch);
+        if self.cursor.get_checked().map(|cell| cell.val.is_some()).unwrap_or(false) {
+            self.cursor.move_to_parent();
+        }
+
+        Break(false)
     }
 
     fn check_win(&self) -> Option<CellMark> {
@@ -206,11 +204,9 @@ impl<'a> RuntimeData<'a> {
         let mut marks: [Option<CellMark>; 9] = Default::default();
 
         for i in 0..9 {
-            unsafe {
-                cursor.move_to_child(CellBranch::new(i));
-                marks[i] = cursor.get_checked().map(|cell| cell.val).unwrap_or(None);
-                cursor.move_to_parent_unchecked();
-            }
+            cursor.move_to_child(CellBranch::new(i));
+            marks[i] = cursor.get_checked().map(|cell| cell.val).unwrap_or(None);
+            cursor.move_to_parent();
         }
 
         for i in 0..3 {

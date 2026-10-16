@@ -51,94 +51,97 @@ impl Board {
     }
 
     pub fn get_checked(&self, id: CellId) -> Result<&Cell, BoardError> {
-        self.inner.get_checked(id).map_err(|err| Inner(err))
+        self.inner.get_checked(id).map_err(Inner)
     }
 
     pub fn get(&self, id: CellId) -> &Cell {
-        self.get_checked(id).expect("Invalid CellId passed to Board::get")
-    }
-
-    pub unsafe fn get_unchecked(&self, id: CellId) -> &Cell {
         self.inner.get(id)
     }
 
     pub fn set_checked(&mut self, mark: CellMark, id: CellId) -> Result<(), BoardError> {
-        let cell = self.inner.get_checked(id).map_err(|err| Inner(err))?;
+        let cell = self.get_checked(id)?;
 
-        if cell.val.is_some() {
-            return Err(MarkOverwrite { mark: cell.val, other: mark, id });
+        if let Some(existing) = cell.val {
+            return Err(MarkOverwrite {
+                mark: Some(existing),
+                other: mark,
+                id,
+            });
         }
 
-        for branch in cell.branches.iter().flatten().copied().collect::<Vec<_>>() {
-            self.inner.delete_branch(id, branch);
-        }
-
-        self.inner.set(id, Some(mark));
+        self.set_internal(mark, id);
         Ok(())
     }
 
     pub fn set(&mut self, mark: CellMark, id: CellId) {
-        self.set_checked(mark, id).expect("Invalid CellId passed to Board::set");
+        #[cfg(debug_assertions)]
+        {
+            self.set_checked(mark, id).unwrap();
+        }
+        #[cfg(not(debug_assertions))]
+        {
+            self.set_internal(mark, id);
+        }
     }
 
-    pub unsafe fn set_unchecked(&mut self, mark: CellMark, id: CellId) {
-        for branch in self.inner
-            .get(id)
-            .branches.iter()
-            .enumerate()
-            .filter_map(|(branch, branch_id)| branch_id.is_some().then_some(branch))
-            .collect::<Vec<usize>>() {
-            self.inner.delete_branch(id, branch);
+    fn set_internal(&mut self, mark: CellMark, id: CellId) {
+        let branches = self.get(id).branches;
+
+        for (branch_idx, child_id) in branches.iter().enumerate() {
+            if child_id.is_some() {
+                self.delete_branch(id, CellBranch::new(branch_idx));
+            }
         }
 
         self.inner.set(id, Some(mark));
     }
 
     pub fn add_cell_checked(&mut self, val: Option<CellMark>, parent_id: CellId, cell_branch: CellBranch) -> Result<usize, BoardError> {
-        let parent = self.inner.get_checked(parent_id).map_err(|err| Inner(err))?;
+        let parent = self.get_checked(parent_id)?;
         if let Some(mark) = parent.val {
             return Err(MarkOverwrite { mark: None, other: mark, id: parent_id });
         }
 
         let branch = *cell_branch.get();
-        
-        unsafe {
-            if parent.branches.get_unchecked(branch).is_some() {
-                return Err(Inner(BranchOverwrite { id: parent_id, branch }));
-            }
-            
-            Ok(self.inner.add_node(val, parent_id, branch))
+        if parent.get_branch(branch).is_some() {
+            return Err(Inner(BranchOverwrite { id: parent_id, branch }));
         }
+
+        Ok(self.inner.add_node(val, parent_id, branch))
     }
     
     pub fn add_cell(&mut self, val: Option<CellMark>, parent_id: CellId, cell_branch: CellBranch) -> usize {
-        self.add_cell_checked(val, parent_id, cell_branch).expect("Invalid CellId passed to Board::add_cell")
-    }
-    
-    pub unsafe fn add_cell_unchecked(&mut self, val: Option<CellMark>, parent_id: CellId, cell_branch: CellBranch) -> usize {
-        self.inner.add_node(val, parent_id, *cell_branch.get())
+        #[cfg(debug_assertions)]
+        {
+            self.add_cell_checked(val, parent_id, cell_branch).unwrap()
+        }
+        #[cfg(not(debug_assertions))]
+        {
+            self.inner.add_node(val, parent_id, *cell_branch.get())
+        }
     }
     
     pub fn delete_branch_checked(&mut self, id: CellId, cell_branch: CellBranch) -> Result<(), BoardError> {
         let branch = *cell_branch.get();
-        
-        unsafe {
-            match *self.inner.get_checked(id).map_err(|err| Inner(err))?.branches.get_unchecked(branch) {
-                None => Err(Inner(BranchDoesNotExist { branch, id })),
-                Some(_) => {
-                    self.inner.delete_branch(id, branch);
-                    Ok(())
-                },
-            }
+
+        match *self.get_checked(id)?.get_branch(branch) {
+            None => Err(Inner(BranchDoesNotExist { branch, id })),
+            Some(_) => {
+                self.inner.delete_branch(id, branch);
+                Ok(())
+            },
         }
     }
     
     pub fn delete_branch(&mut self, id: CellId, cell_branch: CellBranch) {
-        self.delete_branch_checked(id, cell_branch).expect("Invalid CellId passed to Board::delete_branch")
-    }
-    
-    pub unsafe fn delete_branch_unchecked(&mut self, id: CellId, cell_branch: CellBranch) {
-        self.inner.delete_branch(id, *cell_branch.get())
+        #[cfg(debug_assertions)]
+        {
+            self.delete_branch_checked(id, cell_branch).unwrap()
+        }
+        #[cfg(not(debug_assertions))]
+        {
+            self.inner.delete_branch(id, *cell_branch.get())
+        }
     }
 
     pub fn draw(&self, canvas: &mut Canvas, overlay: Option<&Overlay>, frame_coords: &Coords) {
@@ -160,11 +163,9 @@ impl Board {
 
             if depth < *canvas.level().get() as usize + frame_depth {
                 for i in 0..9 {
-                    unsafe {
-                        cursor.move_to_child(CellBranch::new(i));
-                        self.draw_recursive(cursor, overlay, frame_coords, canvas);
-                        cursor.move_to_parent_unchecked();
-                    }
+                    cursor.move_to_child(CellBranch::new(i));
+                    self.draw_recursive(cursor, overlay, frame_coords, canvas);
+                    cursor.move_to_parent();
                 }
             }
         }

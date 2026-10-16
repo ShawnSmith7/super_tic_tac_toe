@@ -69,29 +69,28 @@ macro_rules! define_cursor {
                     return Err(NonZeroGhostDepth(self.ghost_depth));
                 }
 
-                unsafe {
-                    Ok(self.get_unchecked())
-                }
+                Ok(self.inner.get(&self.board.inner))
             }
 
             pub fn get(&self) -> &Cell {
-                self.get_checked().expect(concat!("Invalid state passed to ", stringify!($name), "::get"))
-            }
-
-            pub unsafe fn get_unchecked(&self) -> &Cell {
-                self.inner.get(&self.board.inner)
+                #[cfg(debug_assertions)]
+                {
+                    self.get_checked().unwrap()
+                }
+                #[cfg(not(debug_assertions))]
+                {
+                    self.inner.get(&self.board.inner)
+                }
             }
 
             pub fn move_to_child(&mut self, branch: CellBranch) {
                 self.coords.0.push(branch);
                 let branch = *branch.get();
 
-                unsafe {
-                    if let Ok(cell) = self.get_checked() && cell.branches.get_unchecked(branch).is_some() {
-                        self.inner.move_to_child(branch, &self.board.inner);
-                    } else {
-                        self.ghost_depth += 1;
-                    }
+                if let Ok(cell) = self.get_checked() && cell.get_branch(branch).is_some() {
+                    self.inner.move_to_child(branch, &self.board.inner);
+                } else {
+                    self.ghost_depth += 1;
                 }
             }
 
@@ -100,16 +99,21 @@ macro_rules! define_cursor {
                     return Err(Inner(RootHasNoParent));
                 }
 
-                unsafe {
-                    Ok(self.move_to_parent_unchecked())
-                }
+                Ok(self.move_to_parent_internal())
             }
 
             pub fn move_to_parent(&mut self) -> CellId {
-                self.move_to_parent_checked().expect(concat!("Invalid state passed to ", stringify!($name),"::move_to_parent"))
+                #[cfg(debug_assertions)]
+                {
+                    self.move_to_parent_checked().unwrap()
+                }
+                #[cfg(not(debug_assertions))]
+                {
+                    self.move_to_parent_internal()
+                }
             }
 
-            pub unsafe fn move_to_parent_unchecked(&mut self) -> CellId {
+            fn move_to_parent_internal(&mut self) -> CellId {
                 self.coords.0.pop();
                 if self.invalid_id() {
                     self.ghost_depth -= 1;
@@ -128,89 +132,85 @@ define_cursor!(#[derive(Debug, PartialEq, Eq)], BoardCursorMut, mut);
 
 impl<'a> BoardCursorMut<'a> {
     pub fn set(&mut self, mark: CellMark) {
-        unsafe {
-            self.board.set_unchecked(mark, self.id())
-        }
+        self.board.set(mark, self.id())
     }
 
     pub fn add_cell_checked(&mut self, val: Option<CellMark>, cell_branch: CellBranch) -> Result<usize, BoardError> {
-        unsafe {
-            let invalid_id = self.invalid_id();
+        let invalid_id = self.invalid_id();
 
-            let branches = if invalid_id {
-                let branches = self.coords().0[self.depth() - self.ghost_depth()..].to_vec();
+        let branches = if invalid_id {
+            let branches = self.coords().0[self.depth() - self.ghost_depth()..].to_vec();
 
-                while self.invalid_id() {
-                    self.move_to_parent_unchecked();
-                }
-
-                Some(branches)
-            } else { None };
-
-            if let Some(mark) = self.get_unchecked().val {
-                return Err(MarkOverwrite { mark: None, other: mark, id: self.id() });
+            while self.invalid_id() {
+                self.move_to_parent();
             }
 
-            if invalid_id {
-                for branch in branches.unwrap() {
-                    self.board.add_cell_unchecked(None, self.id(), branch);
-                    self.move_to_child(branch);
-                }
-            }
+            Some(branches)
+        } else { None };
 
-            let branch = *cell_branch.get();
-            if !invalid_id && self.get_unchecked().branches.get_unchecked(branch).is_some() {
-                return Err(Inner(BranchOverwrite { id: self.id(), branch }));
-            }
-
-            Ok(self.board.add_cell_unchecked(val, self.id(), cell_branch))
+        if let Some(mark) = self.get().val {
+            return Err(MarkOverwrite { mark: None, other: mark, id: self.id() });
         }
+
+        if invalid_id {
+            for branch in branches.unwrap() {
+                self.board.add_cell(None, self.id(), branch);
+                self.move_to_child(branch);
+            }
+        }
+
+        let branch = *cell_branch.get();
+        if !invalid_id && self.get().get_branch(branch).is_some() {
+            return Err(Inner(BranchOverwrite { id: self.id(), branch }));
+        }
+
+        Ok(self.board.add_cell(val, self.id(), cell_branch))
     }
 
     pub fn add_cell(&mut self, val: Option<CellMark>, cell_branch: CellBranch) -> usize {
-        self.add_cell_checked(val, cell_branch).expect("Invalid state passed to BoardCursorMut::add_cell")
-    }
-
-    pub unsafe fn add_cell_unchecked(&mut self, val: Option<CellMark>, cell_branch: CellBranch) -> usize {
-        unsafe {
+        #[cfg(debug_assertions)]
+        {
+            self.add_cell_checked(val, cell_branch).unwrap()
+        }
+        #[cfg(not(debug_assertions))]
+        {
             if self.invalid_id() {
                 let branches = self.coords().0[self.depth() - self.ghost_depth()..].to_vec();
 
                 while self.invalid_id() {
-                    self.move_to_parent_unchecked();
+                    self.move_to_parent();
                 }
 
                 for branch in branches {
-                    self.board.add_cell_unchecked(None, self.id(), branch);
+                    self.board.add_cell(None, self.id(), branch);
                     self.move_to_child(branch);
                 }
             }
 
-            self.board.add_cell_unchecked(val, self.id(), cell_branch)
+            self.board.add_cell(val, self.id(), cell_branch)
         }
     }
 
     pub fn delete_branch_checked(&mut self, cell_branch: CellBranch) -> Result<(), BoardError> {
         let branch = *cell_branch.get();
 
-        unsafe {
-            match *self.get_checked()?.branches.get_unchecked(branch) {
-                None => Err(Inner(BranchDoesNotExist { branch, id: self.id() })),
-                Some(_) => {
-                    self.delete_branch_unchecked(cell_branch);
-                    Ok(())
-                },
-            }
+        match *self.get_checked()?.get_branch(branch) {
+            None => Err(Inner(BranchDoesNotExist { branch, id: self.id() })),
+            Some(_) => {
+                self.delete_branch(cell_branch);
+                Ok(())
+            },
         }
     }
 
     pub fn delete_branch(&mut self, cell_branch: CellBranch) {
-        self.delete_branch_checked(cell_branch).expect("Invalid CellBranch passed to BoardCursorMut::delete_branch")
-    }
-
-    pub unsafe fn delete_branch_unchecked(&mut self, cell_branch: CellBranch) {
-        unsafe {
-            self.board.delete_branch_unchecked(self.id(), cell_branch)
+        #[cfg(debug_assertions)]
+        {
+            self.delete_branch_checked(cell_branch).unwrap()
+        }
+        #[cfg(not(debug_assertions))]
+        {
+            self.board.delete_branch(self.id(), cell_branch)
         }
     }
 

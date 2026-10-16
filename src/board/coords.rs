@@ -29,6 +29,15 @@ impl Coords {
     }
 
     pub fn new(vec: Vec<usize>) -> Self {
-        Self::new_checked(vec).expect("Invalid Vec<u8> passed to Coords::new")
+        #[cfg(debug_assertions)]
+        {
+            Self::new_checked(vec).unwrap()
+        }
+        #[cfg(not(debug_assertions))]
+        {
+            Self(vec.into_iter()
+                .map(CellBranch::new)
+                .collect::<Vec<CellBranch>>())
+        }
     }
 }
