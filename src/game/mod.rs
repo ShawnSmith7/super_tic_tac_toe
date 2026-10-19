@@ -131,10 +131,10 @@ impl<'a> RuntimeData<'a> {
 
     fn process_command(&mut self, command: Command, turn: &mut PlayerMark, state: &mut GameState) -> io::Result<Break> {
         match command {
-            Command::Move(branch) => {
-                self.make_move(branch, turn, state);
-                return Ok(Break(false))
-            },
+            Command::Move(branch) =>
+                if self.make_move(branch, turn, state).0 {
+                    return Ok(Break(false));
+                },
             Command::Toggle => self.has_overlay = !self.has_overlay,
             Command::Zoom(target) => self.zoom(target),
             Command::Quit => return Ok(Break(true)),
