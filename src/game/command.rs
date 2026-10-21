@@ -1,17 +1,20 @@
 use crate::{board, Level};
 use board::{CellBranch, UserCellBranch};
-use std::str::FromStr;
+use std::{str, result};
+use str::FromStr;
 use terminal_tools::ParseError;
 
 use Command::*;
 use ZoomTarget::*;
+
+pub type Result<T = ()> = result::Result<T, ParseError>;
 
 macro_rules! impl_from_str {
     ($name:ident) => {
         impl FromStr for $name {
             type Err = ParseError;
 
-            fn from_str(s: &str) -> Result<Self, Self::Err> {
+            fn from_str(s: &str) -> Result<Self> {
                 let mut tokens = s.split_whitespace();
                 let target = Self::parse_from_tokens(&mut tokens, s)?;
 
@@ -37,7 +40,7 @@ pub enum Command {
 impl FromStr for Command {
     type Err = ParseError;
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
+    fn from_str(s: &str) -> Result<Self> {
         let err = || ParseError(s.to_string());
         let mut tokens = s.split_whitespace();
 
@@ -69,7 +72,7 @@ pub enum ZoomTarget {
 impl_from_str!(ZoomTarget);
 
 impl ZoomTarget {
-    fn parse_from_tokens<'a, I>(tokens: &mut I, s: &str) -> Result<Self, ParseError>
+    fn parse_from_tokens<'a, I>(tokens: &mut I, s: &str) -> Result<Self>
     where
         I: Iterator<Item = &'a str>,
     {
@@ -94,7 +97,7 @@ pub enum ZoomFrameAction {
 impl_from_str!(ZoomFrameAction);
 
 impl ZoomFrameAction {
-    fn parse_from_tokens<'a, I>(tokens: &mut I, s: &str) -> Result<Self, ParseError>
+    fn parse_from_tokens<'a, I>(tokens: &mut I, s: &str) -> Result<Self>
     where
         I: Iterator<Item = &'a str>,
     {
@@ -122,7 +125,7 @@ pub enum ZoomCanvasAction {
 impl_from_str!(ZoomCanvasAction);
 
 impl ZoomCanvasAction {
-    fn parse_from_tokens<'a, I>(tokens: &mut I, s: &str) -> Result<Self, ParseError>
+    fn parse_from_tokens<'a, I>(tokens: &mut I, s: &str) -> Result<Self>
     where
         I: Iterator<Item = &'a str>,
     {

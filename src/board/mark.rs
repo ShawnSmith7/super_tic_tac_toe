@@ -3,13 +3,16 @@ use math_tools::bounded_value::Digit;
 use crate::{canvas, Level};
 use canvas::{line, Canvas, Pos, Size};
 use line::*;
-use std::fmt::{self, Display, Formatter};
+use std::{fmt, result};
+use std::fmt::{Display, Formatter};
 use serde::{Serialize, Deserialize};
 use PlayerMark::*;
 use CellMark::*;
 use Mark::*;
 use MarkError::*;
 use LineVariant::*;
+
+pub type Result<T> = result::Result<T, MarkError>;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum PlayerMark {
@@ -35,7 +38,7 @@ impl Display for PlayerMark {
 impl TryFrom<CellMark> for PlayerMark {
     type Error = MarkError;
 
-    fn try_from(cell_mark: CellMark) -> Result<Self, Self::Error> {
+    fn try_from(cell_mark: CellMark) -> Result<Self> {
         if let Player(player_mark) = cell_mark {
             return Ok(player_mark);
         }
@@ -47,7 +50,7 @@ impl TryFrom<CellMark> for PlayerMark {
 impl TryFrom<Mark> for PlayerMark {
     type Error = MarkError;
 
-    fn try_from(mark: Mark) -> Result<Self, Self::Error> {
+    fn try_from(mark: Mark) -> Result<Self> {
         if let Cell(cell_mark) = mark {
             return Ok(PlayerMark::try_from(cell_mark)?);
         }
@@ -95,7 +98,7 @@ impl From<PlayerMark> for CellMark {
 impl TryFrom<Mark> for CellMark {
     type Error = MarkError;
 
-    fn try_from(mark: Mark) -> Result<Self, Self::Error> {
+    fn try_from(mark: Mark) -> Result<Self> {
         if let Cell(cell_mark) = mark {
             return Ok(cell_mark);
         }

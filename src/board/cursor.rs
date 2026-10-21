@@ -1,7 +1,7 @@
 use data_structures::arena_tree::{self, cursor};
 use cursor::ArenaTreeCursor;
-use super::mark::CellMark;
-use super::{CELLS_PER_GRID, Board, CellId, Cell, CellBranch, BoardError, Coords};
+use super::{mark, CELLS_PER_GRID, Board, CellId, Cell, CellBranch, BoardError, Coords, Result};
+use mark::CellMark;
 use arena_tree::ArenaTreeError;
 
 use CellId::*;
@@ -64,7 +64,7 @@ macro_rules! define_cursor {
                 self.ghost_depth != 0
             }
 
-            pub fn get_checked(&self) -> Result<&Cell, BoardError> {
+            pub fn get_checked(&self) -> Result<&Cell> {
                 if self.invalid_id() {
                     return Err(NonZeroGhostDepth(self.ghost_depth));
                 }
@@ -94,7 +94,7 @@ macro_rules! define_cursor {
                 }
             }
 
-            pub fn move_to_parent_checked(&mut self) -> Result<CellId, BoardError> {
+            pub fn move_to_parent_checked(&mut self) -> Result<CellId> {
                 if !self.invalid_id() && self.id() == Root {
                     return Err(Inner(RootHasNoParent));
                 }
@@ -135,7 +135,7 @@ impl<'a> BoardCursorMut<'a> {
         self.board.set(mark, self.id())
     }
 
-    pub fn add_cell_checked(&mut self, val: Option<CellMark>, cell_branch: CellBranch) -> Result<usize, BoardError> {
+    pub fn add_cell_checked(&mut self, val: Option<CellMark>, cell_branch: CellBranch) -> Result<usize> {
         let invalid_id = self.invalid_id();
 
         let branches = if invalid_id {
@@ -191,7 +191,7 @@ impl<'a> BoardCursorMut<'a> {
         }
     }
 
-    pub fn delete_branch_checked(&mut self, cell_branch: CellBranch) -> Result<(), BoardError> {
+    pub fn delete_branch_checked(&mut self, cell_branch: CellBranch) -> Result {
         let branch = *cell_branch.get();
 
         match *self.get_checked()?.get_branch(branch) {

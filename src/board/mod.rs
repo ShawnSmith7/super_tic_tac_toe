@@ -9,7 +9,7 @@ pub use overlay::Overlay;
 use bounded_value::BoundedValue;
 use math_tools::{bounded_value, define_bounds};
 use data_structures::arena_tree::{ArenaTree, ArenaTreeError, Node};
-use std::{fmt, ops};
+use std::{fmt, ops, result};
 use fmt::{Display, Formatter};
 use super::{canvas, UserLevel};
 use canvas::Canvas;
@@ -29,6 +29,7 @@ define_bounds!(UserCellBranchBounds, usize, Included(1), Included(9));
 pub type UserCellBranch = BoundedValue<UserCellBranchBounds>;
 pub type Cell = Node<Option<CellMark>, CELLS_PER_GRID>;
 pub use data_structures::arena_tree::NodeId as CellId;
+pub type Result<T = ()> = result::Result<T, BoardError>;
 
 #[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
 pub struct Board {
@@ -50,7 +51,7 @@ impl Board {
         self.level
     }
 
-    pub fn get_checked(&self, id: CellId) -> Result<&Cell, BoardError> {
+    pub fn get_checked(&self, id: CellId) -> Result<&Cell> {
         self.inner.get_checked(id).map_err(Inner)
     }
 
@@ -58,7 +59,7 @@ impl Board {
         self.inner.get(id)
     }
 
-    pub fn set_checked(&mut self, mark: CellMark, id: CellId) -> Result<(), BoardError> {
+    pub fn set_checked(&mut self, mark: CellMark, id: CellId) -> Result {
         let cell = self.get_checked(id)?;
 
         if let Some(existing) = cell.val {
@@ -96,7 +97,7 @@ impl Board {
         self.inner.set(id, Some(mark));
     }
 
-    pub fn add_cell_checked(&mut self, val: Option<CellMark>, parent_id: CellId, cell_branch: CellBranch) -> Result<usize, BoardError> {
+    pub fn add_cell_checked(&mut self, val: Option<CellMark>, parent_id: CellId, cell_branch: CellBranch) -> Result<usize> {
         let parent = self.get_checked(parent_id)?;
         if let Some(mark) = parent.val {
             return Err(MarkOverwrite { mark: None, other: mark, id: parent_id });
@@ -121,7 +122,7 @@ impl Board {
         }
     }
     
-    pub fn delete_branch_checked(&mut self, id: CellId, cell_branch: CellBranch) -> Result<(), BoardError> {
+    pub fn delete_branch_checked(&mut self, id: CellId, cell_branch: CellBranch) -> Result {
         let branch = *cell_branch.get();
 
         match *self.get_checked(id)?.get_branch(branch) {
