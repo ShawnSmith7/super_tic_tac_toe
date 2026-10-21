@@ -1,6 +1,7 @@
 name: Multi-Platform Rust Release
 
 on:
+  workflow_dispatch:
   push:
     tags:
       - 'v*.*.*'
@@ -29,6 +30,12 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+
+      - name: Install System Dependencies (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pkg-config libssl-dev build-essential
 
       - name: Install Rust Toolchain
         uses: dtolnay/rust-toolchain@stable
@@ -69,11 +76,6 @@ jobs:
         with:
           path: release-assets
           merge-multiple: true
-
-      - name: Generate SHA-256 Checksums
-        run: |
-          cd release-assets
-          sha256sum * > checksums.txt
 
       - name: Publish Release with Raw Binaries
         uses: softprops/action-gh-release@v2
